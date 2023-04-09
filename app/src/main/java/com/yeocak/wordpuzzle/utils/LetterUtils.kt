@@ -1,47 +1,43 @@
 package com.yeocak.wordpuzzle.utils
 
-val LETTER_LIST = listOf(
-    'A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K',
-    'L', 'M', 'N', 'O', 'Ö', 'P', 'R', 'S', 'Ş', 'T', 'U', 'Ü', 'V', 'Y', 'Z'
-)
-
-fun getRandomLetter() = LETTER_LIST.random()
+fun getRandomLetter() = Letters.values().random()
 
 fun Char.isVowel() = this == 'A' || this == 'E' || this == 'I' || this == 'İ' ||
         this == 'O' || this == 'Ö' || this == 'U' || this == 'Ü'
 
-enum class Letters (val point:Int){
-    A(1)
+fun Letters.isVowel() = this.char.isVowel()
 
-    /*
-        alphabet.put('A', 1)
-        alphabet.put('B', 3)
-        alphabet.put('C', 4)
-        alphabet.put('Ç', 4)
-        alphabet.put('D', 3)
-        alphabet.put('E', 1)
-        alphabet.put('F', 7)
-        alphabet.put('G', 5)
-        alphabet.put('Ğ', 8)
-        alphabet.put('H', 5)
-        alphabet.put('I', 2)
-        alphabet.put('İ', 1)
-        alphabet.put('J', 10)
-        alphabet.put('K', 1)
-        alphabet.put('L', 1)
-        alphabet.put('M', 2)
-        alphabet.put('N', 1)
-        alphabet.put('O', 2)
-        alphabet.put('Ö', 7)
-        alphabet.put('P', 5)
-        alphabet.put('R', 1)
-        alphabet.put('S', 2)
-        alphabet.put('Ş', 4)
-        alphabet.put('T', 1)
-        alphabet.put('U', 2)
-        alphabet.put('Ü', 3)
-        alphabet.put('V', 7)
-        alphabet.put('Y', 3)
-        alphabet.put('Z', 4)
-    * */
+enum class Letters(val point: Int) {
+    A(1),
+    B(3),
+    C(4),
+    Ç(4),
+    D(3),
+    E(1),
+    F(7),
+    G(5),
+    Ğ(8),
+    H(5),
+    I(2),
+    İ(1),
+    J(10),
+    K(1),
+    L(1),
+    M(2),
+    N(1),
+    O(2),
+    Ö(7),
+    P(5),
+    R(1),
+    S(2),
+    Ş(4),
+    T(1),
+    U(2),
+    Ü(3),
+    V(7),
+    Y(3),
+    Z(4);
+
+    val char: Char
+        get() = this.name.first()
 }

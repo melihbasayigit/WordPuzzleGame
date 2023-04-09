@@ -91,14 +91,14 @@ class WordPuzzleGameView @JvmOverloads constructor(
             }
         }
 
-    fun pauseGame(){
-        if(gameState != GameState.FINISHED){
+    fun pauseGame() {
+        if (gameState != GameState.FINISHED) {
             gameState = GameState.PAUSED
         }
     }
 
-    fun unpauseGame(){
-        if(gameState != GameState.PAUSED) return
+    fun unpauseGame() {
+        if (gameState != GameState.PAUSED) return
         gameState = GameState.RUNNING
 
         surfaceViewThread = SurfaceViewThread().apply {
@@ -106,7 +106,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
         }
 
         val clock = clockThread
-        if(clock == null || !clock.isAlive){
+        if (clock == null || !clock.isAlive) {
             clockThread = ClockThread().apply {
                 start()
             }
@@ -181,8 +181,8 @@ class WordPuzzleGameView @JvmOverloads constructor(
         val row = getRandomRowValues(column)
 
         val newSingleLetter = SingleLetter(
-            letter,
-            LetterVisualType.getTypeOfLetter(letter),
+            letter.char,
+            LetterVisualType.getTypeOfLetter(letter.char),
             paint,
             false,
             column,
@@ -201,7 +201,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
         bundle.putParcelable("superState", super.onSaveInstanceState())
         bundle.putParcelableArray("letterList", _letterList.toTypedArray())
         bundle.putBoolean("isStartRowsSend", isStartRowsSend)
-        bundle.putSerializable("gameState",gameState)
+        bundle.putSerializable("gameState", gameState)
         return bundle
     }
 
@@ -250,6 +250,19 @@ class WordPuzzleGameView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
+    private var topLineColor = ResourcesCompat.getColor(
+        resources,
+        R.color.red,
+        null
+    )
+
+    private val topLinePaint = Paint().apply {
+        strokeWidth = 10f
+        style = Paint.Style.FILL_AND_STROKE
+        color = topLineColor
+        isAntiAlias = true
+    }
+
     init {
         context.theme.obtainStyledAttributes(
             attrs,
@@ -278,7 +291,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 // endregion
 
     override fun surfaceCreated(p0: SurfaceHolder) {
-        if(gameState.isAutoRunnable){
+        if (gameState.isAutoRunnable) {
             gameState = GameState.LAUNCHING
         }
         if (surfaceViewThread == null) {
@@ -299,7 +312,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
                 letter.paint.textSize = puzzleField.fontSize
             }
         }
-        if(gameState.isAutoRunnable){
+        if (gameState.isAutoRunnable) {
             gameState = GameState.RUNNING
         }
     }
@@ -321,9 +334,18 @@ class WordPuzzleGameView @JvmOverloads constructor(
     }
 
     private fun Canvas.drawField() {
-        drawRect(
+        /*drawRect(
             puzzleField.fieldCoordinates, fieldPaint
+        )*/
+        // Draw top line
+        drawLine(
+            0f,
+            puzzleField.verticalPadding,
+            width.toFloat(),
+            puzzleField.verticalPadding,
+            topLinePaint
         )
+        // Draw all letters
         useLetterList {
             forEach { letter ->
                 drawLetter(letter)
@@ -411,7 +433,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
         fun requestExitAndWait() {
             try {
-                if(gameState.isAutoRunnable){
+                if (gameState.isAutoRunnable) {
                     gameState = GameState.PREPARING
                 }
                 join()
@@ -431,10 +453,11 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event?.action == MotionEvent.ACTION_UP) {
-            if(gameState.isClickable){
+            if (gameState.isClickable) {
                 useLetterList {
                     forEach { letter ->
-                        val letterHitbox = puzzleField.getLetterCoordinates(letter.row, letter.column)
+                        val letterHitbox =
+                            puzzleField.getLetterCoordinates(letter.row, letter.column)
                         if (event.x > letterHitbox.left && event.x < letterHitbox.right &&
                             event.y > letterHitbox.top && event.y < letterHitbox.bottom
                         ) {
@@ -542,7 +565,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
                 try {
                     sleep(letterAddingFrequency)
                     if (gameState.isClockRunning) {
-                        Log.d("EmreTest","sended from: ${this.name}")
+                        Log.d("EmreTest", "sended from: ${this.name}")
                         sendRandomLetter()
                     }
                 } catch (e: InterruptedException) {

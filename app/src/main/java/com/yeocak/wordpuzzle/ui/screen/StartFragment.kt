@@ -26,7 +26,18 @@ class StartFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // KODUNU BURAYA YAZ
+        onClickListeners()
+    }
 
+    private fun onClickListeners() {
+        binding.btnNext.setOnClickListener {
+            navigateGameFragment()
+        }
+    }
+
+    private fun navigateGameFragment() {
+        val action = StartFragmentDirections.actionStartFragmentToGameFragment()
+        findNavController().navigate(action)
     }
 
     override fun onDestroyView() {

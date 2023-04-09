@@ -27,7 +27,8 @@
         app:layout_constraintRight_toLeftOf="@+id/imgScoreBackground"
         app:layout_constraintTop_toTopOf="@+id/imgScoreBackground"
         app:srcCompat="@drawable/heart_crop"
-        app:tint="@color/dim_gray" />
+        app:tint="@color/dim_gray"
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/imgHealBarRight"
@@ -37,16 +38,13 @@
         app:layout_constraintBottom_toBottomOf="@+id/imgScoreBackground"
         app:layout_constraintLeft_toRightOf="@+id/imgScoreBackground"
         app:layout_constraintTop_toTopOf="@+id/imgScoreBackground"
-        app:srcCompat="@drawable/heart_crop" />
+        app:srcCompat="@drawable/heart_crop"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/txtScore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/imgScoreBackground"
-        android:layout_alignTop="@+id/imgScoreBackground"
-        android:layout_alignRight="@+id/imgScoreBackground"
-        android:layout_alignBottom="@+id/imgScoreBackground"
         android:layout_margin="1dp"
         android:gravity="center"
         android:text="120"
@@ -63,18 +61,19 @@
         android:layout_height="56dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_media_play" />
+        app:srcCompat="@android:drawable/ic_media_play"
+        tools:ignore="ContentDescription" />
 
     <com.yeocak.wordpuzzle.ui.customview.WordPuzzleGameView
         android:id="@+id/gameView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:column_number="8"
+        app:layout_constraintBottom_toTopOf="@+id/btnApprove"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imgScoreBackground"
-        app:layout_constraintBottom_toTopOf="@+id/btnApprove"
-        app:row_number="5"
+        app:row_number="10"
         app:start_row_count="3" />
 
     <com.google.android.material.button.MaterialButton
@@ -129,7 +128,7 @@
         android:layout_marginTop="8dp"
         android:background="@color/indigo"
         android:ems="10"
-        android:paddingStart="8dp"
+        android:paddingHorizontal="8dp"
         android:text="TEXT TEXT TEXT"
         android:textColor="@color/light_cyan"
         android:textSize="32sp"

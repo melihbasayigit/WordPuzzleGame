@@ -11,8 +11,8 @@ class PuzzleField(val columnNumber: Int, val rowNumber: Int) {
     var height: Float = 0f
         private set
 
-    private var horizontalPadding = 0f
-    private var verticalPadding = 0f
+    var horizontalPadding = 0f
+    var verticalPadding = 0f
 
     val boundRatio: Float
         get() {
