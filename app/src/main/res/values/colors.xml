@@ -23,4 +23,10 @@
     <color name="blizzard_blue">#A5E8E6</color>
     <color name="magic_mint">#B0F5D9</color>
     <color name="tea_green">#D4FCCA</color>
+
+    <color name="dim_gray">#696969</color>
+    <color name="light_cyan">#E0FFFF</color>
+    <color name="indigo">#4B0082</color>
+    <color name="material_green">#00B18A</color>
+    <color name="material_red">#E64B58</color>
 </resources>

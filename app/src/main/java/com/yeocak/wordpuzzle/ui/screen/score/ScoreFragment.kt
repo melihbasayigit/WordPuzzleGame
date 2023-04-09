@@ -1,4 +1,4 @@
-package com.yeocak.wordpuzzle.ui.screen
+package com.yeocak.wordpuzzle.ui.screen.score
 
 import android.os.Bundle
 import android.view.LayoutInflater

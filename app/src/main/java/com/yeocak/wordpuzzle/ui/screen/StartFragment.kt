@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.yeocak.wordpuzzle.databinding.FragmentStartBinding
 
 class StartFragment : Fragment() {

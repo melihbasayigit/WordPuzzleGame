@@ -25,7 +25,7 @@
     </fragment>
     <fragment
         android:id="@+id/scoreFragment"
-        android:name="com.yeocak.wordpuzzle.ui.screen.ScoreFragment"
+        android:name="com.yeocak.wordpuzzle.ui.screen.score.ScoreFragment"
         android:label="fragment_score"
         tools:layout="@layout/fragment_score" >
         <action
