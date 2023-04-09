@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WordPuzzleGameView">
+        <attr name="column_number" format="integer"/>
+        <attr name="row_number" format="integer"/>
+        <attr name="backgroundColor"/>
+        <attr name="start_row_count" format="integer"/>
+    </declare-styleable>
+</resources>
