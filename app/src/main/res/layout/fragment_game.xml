@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:column_number="8"
-        app:row_number="10"
+        app:row_number="5"
         app:start_row_count="3" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

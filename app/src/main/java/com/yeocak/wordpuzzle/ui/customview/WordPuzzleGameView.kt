@@ -28,15 +28,6 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
     private var puzzleField: PuzzleField
 
-    private var gameState = GameState.LAUNCHING
-        set(value) {
-            val temp = field
-            field = value
-            if (value != temp) {
-                onGameStateChangeListener?.invoke(value)
-            }
-        }
-
     private val letterListLock = Mutex()
     private val _letterList = mutableListOf<SingleLetter>()
 
@@ -47,8 +38,6 @@ class WordPuzzleGameView @JvmOverloads constructor(
             }
         }
     }
-
-    private var isThreadsRunning = true
 
     private var onCurrentWordChangeListener: ((word: String) -> Unit)? = null
     private var onGameStateChangeListener: ((state: GameState) -> Unit)? = null
@@ -92,6 +81,38 @@ class WordPuzzleGameView @JvmOverloads constructor(
     }
 
     // region -Globals-
+
+    var gameState = GameState.PREPARING
+        private set(value) {
+            val temp = field
+            field = value
+            if (value != temp) {
+                onGameStateChangeListener?.invoke(value)
+            }
+        }
+
+    fun pauseGame(){
+        if(gameState != GameState.FINISHED){
+            gameState = GameState.PAUSED
+        }
+    }
+
+    fun unpauseGame(){
+        if(gameState != GameState.PAUSED) return
+        gameState = GameState.RUNNING
+
+        surfaceViewThread = SurfaceViewThread().apply {
+            start()
+        }
+
+        val clock = clockThread
+        if(clock == null || !clock.isAlive){
+            clockThread = ClockThread().apply {
+                start()
+            }
+        }
+
+    }
 
     val currentWord: String
         get() {
@@ -159,11 +180,6 @@ class WordPuzzleGameView @JvmOverloads constructor(
         )
         val row = getRandomRowValues(column)
 
-        if (row == null) {
-            // Sahanın üstüne ekleniyor oyun bitti TODO()
-            return
-        }
-
         val newSingleLetter = SingleLetter(
             letter,
             LetterVisualType.getTypeOfLetter(letter),
@@ -185,6 +201,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
         bundle.putParcelable("superState", super.onSaveInstanceState())
         bundle.putParcelableArray("letterList", _letterList.toTypedArray())
         bundle.putBoolean("isStartRowsSend", isStartRowsSend)
+        bundle.putSerializable("gameState",gameState)
         return bundle
     }
 
@@ -195,6 +212,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
                 addAll(list.orEmpty())
             }
             isStartRowsSend = state.getBoolean("isStartRowsSend")
+            gameState = state.getSerializable("gameState") as? GameState ?: GameState.PREPARING
             super.onRestoreInstanceState(state.parcelable("superState"))
             return
         }
@@ -260,15 +278,17 @@ class WordPuzzleGameView @JvmOverloads constructor(
 // endregion
 
     override fun surfaceCreated(p0: SurfaceHolder) {
+        if(gameState.isAutoRunnable){
+            gameState = GameState.LAUNCHING
+        }
         if (surfaceViewThread == null) {
             surfaceViewThread = SurfaceViewThread()
             surfaceViewThread?.start()
         }
-        if (clockThread == null) {
+        if (clockThread == null && gameState.isClockRunning) {
             clockThread = ClockThread()
             clockThread?.start()
         }
-        gameState = GameState.RUNNING
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -278,6 +298,9 @@ class WordPuzzleGameView @JvmOverloads constructor(
             forEach { letter ->
                 letter.paint.textSize = puzzleField.fontSize
             }
+        }
+        if(gameState.isAutoRunnable){
+            gameState = GameState.RUNNING
         }
     }
 
@@ -291,6 +314,9 @@ class WordPuzzleGameView @JvmOverloads constructor(
             forEach { letter ->
                 letter.calculateNextRowValue(0.05f)
             }
+        }
+        if (checkIfGameEnded()) {
+            gameState = GameState.FINISHED
         }
     }
 
@@ -347,13 +373,15 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
         override fun run() {
             try {
-                while (isThreadsRunning) {
+                do {
                     holder ?: return
                     val frameStartTime = System.nanoTime()
                     val canvas: Canvas? = holder.lockCanvas()
                     if (canvas != null) {
                         try {
-                            calculate()
+                            if (gameState.isCalculateRunning) {
+                                calculate()
+                            }
                             canvas.drawColor(backgroundColor) // clear screen
                             canvas.drawField()
                         } finally {
@@ -373,7 +401,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
                     } else {
                         //Log.d("EmreTest", "Not Sleeped")
                     }
-                }
+                } while (gameState.isThreadsRunning)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e(LOG_TAG, "Exception while locking/unlocking")
@@ -383,7 +411,9 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
         fun requestExitAndWait() {
             try {
-                isThreadsRunning = false
+                if(gameState.isAutoRunnable){
+                    gameState = GameState.PREPARING
+                }
                 join()
             } catch (_: InterruptedException) {
 
@@ -391,16 +421,26 @@ class WordPuzzleGameView @JvmOverloads constructor(
         }
     }
 
+    private fun checkIfGameEnded(): Boolean {
+        return useLetterList {
+            this.any { letter ->
+                letter.row.isStable() && letter.row.goal >= puzzleField.rowNumber
+            }
+        }
+    }
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event?.action == MotionEvent.ACTION_UP) {
-            useLetterList {
-                forEach { letter ->
-                    val letterHitbox = puzzleField.getLetterCoordinates(letter.row, letter.column)
-                    if (event.x > letterHitbox.left && event.x < letterHitbox.right &&
-                        event.y > letterHitbox.top && event.y < letterHitbox.bottom
-                    ) {
-                        onClickSingleLetter(letter)
-                        return@forEach
+            if(gameState.isClickable){
+                useLetterList {
+                    forEach { letter ->
+                        val letterHitbox = puzzleField.getLetterCoordinates(letter.row, letter.column)
+                        if (event.x > letterHitbox.left && event.x < letterHitbox.right &&
+                            event.y > letterHitbox.top && event.y < letterHitbox.bottom
+                        ) {
+                            onClickSingleLetter(letter)
+                            return@forEach
+                        }
                     }
                 }
             }
@@ -428,7 +468,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
     private fun getRandomColumn() = (0 until puzzleField.columnNumber).random()
 
-    private fun getAvailableRow(column: Int): Int? {
+    private fun getAvailableRow(column: Int): Int {
         return useLetterList {
             val columnLetters = filter { letter ->
                 letter.column == column
@@ -438,19 +478,13 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
             val topLetter = columnLetters.firstOrNull()
 
-            return@useLetterList when {
-                (topLetter == null) -> 0
-                (topLetter.row.goal < puzzleField.rowNumber - 1) -> topLetter.row.goal + 1
-                else -> {
-                    // Sahanın üstüne ekleniyor
-                    null
-                }
-            }
+            topLetter ?: return@useLetterList 0
+            return@useLetterList topLetter.row.goal + 1
         }
     }
 
-    private fun getRandomRowValues(column: Int): RowValues.BetweenRows? {
-        val row = getAvailableRow(column) ?: return null
+    private fun getRandomRowValues(column: Int): RowValues.BetweenRows {
+        val row = getAvailableRow(column)
         return RowValues.BetweenRows(
             values = Pair(puzzleField.rowNumber, puzzleField.rowNumber + 1),
             betweenRatio = 0f,
@@ -504,15 +538,17 @@ class WordPuzzleGameView @JvmOverloads constructor(
                 }
             }
             isStartRowsSend = true
-            while (isThreadsRunning) {
+            while (gameState.isThreadsRunning) {
                 try {
-                    sendRandomLetter()
                     sleep(letterAddingFrequency)
+                    if (gameState.isClockRunning) {
+                        Log.d("EmreTest","sended from: ${this.name}")
+                        sendRandomLetter()
+                    }
                 } catch (e: InterruptedException) {
                     // ignore
                 }
             }
-            join()
         }
     }
 

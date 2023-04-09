@@ -25,6 +25,7 @@ class GameFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // KODUNU BURAYA YAZ
+
     }
 
     override fun onDestroyView() {
