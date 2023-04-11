@@ -32,6 +32,11 @@
         <argument
             android:name="name"
             app:argType="string" />
+        <action
+            android:id="@+id/action_gameFragment_self"
+            app:popUpTo="@id/startFragment"
+            app:popUpToInclusive="true"
+            app:destination="@id/gameFragment" />
     </fragment>
     <fragment
         android:id="@+id/scoreFragment"
