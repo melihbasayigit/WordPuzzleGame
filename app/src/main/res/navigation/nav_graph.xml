@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_startFragment_to_gameFragment"
             app:destination="@id/gameFragment" />
+        <argument
+            android:name="name"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/gameFragment"
@@ -22,6 +25,13 @@
         <action
             android:id="@+id/action_gameFragment_to_scoreFragment"
             app:destination="@id/scoreFragment" />
+        <argument
+            android:name="score"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="name"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/scoreFragment"
@@ -31,5 +41,12 @@
         <action
             android:id="@+id/action_scoreFragment_to_startFragment"
             app:destination="@id/startFragment" />
+        <argument
+            android:name="name"
+            app:argType="string" />
+        <argument
+            android:name="score"
+            app:argType="integer"
+            android:defaultValue="0" />
     </fragment>
 </navigation>

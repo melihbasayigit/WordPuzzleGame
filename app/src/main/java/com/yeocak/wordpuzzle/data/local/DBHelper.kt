@@ -67,5 +67,10 @@ class DBHelper(context: Context) :
         return scoreList
     }
 
+    fun deleteData() {
+        val db = this.writableDatabase
+        db.delete(TABLE_NAME, null, null)
+        db.close()
+    }
 
 }
