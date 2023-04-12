@@ -334,6 +334,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
     }
 
     private fun Canvas.drawField() {
+	    // Draw field background
         /*drawRect(
             puzzleField.fieldCoordinates, fieldPaint
         )*/
