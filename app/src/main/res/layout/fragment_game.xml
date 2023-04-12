@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/gray_twenty">
 
     <ImageView
         android:id="@+id/imgScoreBackground"
@@ -27,7 +28,6 @@
         app:layout_constraintRight_toLeftOf="@+id/imgScoreBackground"
         app:layout_constraintTop_toTopOf="@+id/imgScoreBackground"
         app:srcCompat="@drawable/heart_crop"
-        app:tint="@color/dim_gray"
         tools:ignore="ContentDescription" />
 
     <ImageView
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="1dp"
         android:gravity="center"
-        android:text="120"
+        android:text="0"
         android:textColor="@color/white"
         android:textSize="32sp"
         app:layout_constraintBottom_toBottomOf="@+id/imgScoreBackground"
@@ -61,7 +61,7 @@
         android:layout_height="56dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_media_play"
+        app:srcCompat="@android:drawable/ic_media_pause"
         tools:ignore="ContentDescription" />
 
     <com.yeocak.wordpuzzle.ui.customview.WordPuzzleGameView
@@ -77,7 +77,7 @@
         app:start_row_count="3" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnApprove"
+        android:id="@+id/btnRefuse"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginStart="3dp"
@@ -100,7 +100,7 @@
         app:shapeAppearanceOverlay="@style/shapeButton" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnRefuse"
+        android:id="@+id/btnApprove"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_marginTop="16dp"
@@ -129,7 +129,7 @@
         android:background="@color/indigo"
         android:ems="10"
         android:paddingHorizontal="8dp"
-        android:text="TEXT TEXT TEXT"
+        android:text=""
         android:textColor="@color/light_cyan"
         android:textSize="32sp"
         app:layout_constraintBottom_toBottomOf="parent"

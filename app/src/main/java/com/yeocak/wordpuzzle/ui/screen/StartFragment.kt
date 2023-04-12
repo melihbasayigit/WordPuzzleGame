@@ -1,6 +1,8 @@
 package com.yeocak.wordpuzzle.ui.screen
 
 import android.os.Bundle
+import android.text.Editable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,19 +26,20 @@ class StartFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // KODUNU BURAYA YAZ
         onClickListeners()
     }
 
     private fun onClickListeners() {
         binding.btnNext.setOnClickListener {
-            navigateGameFragment()
+            val name = binding.txtName.text
+            if (!name.isNullOrEmpty()) {
+                navigateGameFragment(name)
+            }
         }
     }
 
-    private fun navigateGameFragment() {
-        val action = StartFragmentDirections.actionStartFragmentToGameFragment()
+    private fun navigateGameFragment(name: Editable) {
+        val action = StartFragmentDirections.actionStartFragmentToGameFragment(name.toString())
         findNavController().navigate(action)
     }
 
