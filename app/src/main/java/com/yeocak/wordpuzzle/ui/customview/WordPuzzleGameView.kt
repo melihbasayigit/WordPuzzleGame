@@ -566,7 +566,6 @@ class WordPuzzleGameView @JvmOverloads constructor(
                 try {
                     sleep(letterAddingFrequency)
                     if (gameState.isClockRunning) {
-                        Log.d("EmreTest", "sended from: ${this.name}")
                         sendRandomLetter()
                     }
                 } catch (e: InterruptedException) {
