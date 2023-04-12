@@ -9,7 +9,7 @@
         android:id="@+id/startFragment"
         android:name="com.yeocak.wordpuzzle.ui.screen.StartFragment"
         android:label="fragment_start"
-        tools:layout="@layout/fragment_start" >
+        tools:layout="@layout/fragment_start">
         <action
             android:id="@+id/action_startFragment_to_gameFragment"
             app:destination="@id/gameFragment" />
@@ -21,28 +21,33 @@
         android:id="@+id/gameFragment"
         android:name="com.yeocak.wordpuzzle.ui.screen.GameFragment"
         android:label="fragment_game"
-        tools:layout="@layout/fragment_game" >
+        tools:layout="@layout/fragment_game">
         <action
             android:id="@+id/action_gameFragment_to_scoreFragment"
+            app:popUpTo="@id/gameFragment"
+            app:popUpToInclusive="true"
             app:destination="@id/scoreFragment" />
         <argument
             android:name="score"
-            app:argType="integer"
-            android:defaultValue="0" />
+            android:defaultValue="0"
+            app:argType="integer" />
         <argument
             android:name="name"
             app:argType="string" />
         <action
             android:id="@+id/action_gameFragment_self"
-            app:popUpTo="@id/startFragment"
-            app:popUpToInclusive="true"
+            app:destination="@id/gameFragment"
+            app:popUpTo="@id/gameFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_gameFragment_self2"
             app:destination="@id/gameFragment" />
     </fragment>
     <fragment
         android:id="@+id/scoreFragment"
         android:name="com.yeocak.wordpuzzle.ui.screen.score.ScoreFragment"
         android:label="fragment_score"
-        tools:layout="@layout/fragment_score" >
+        tools:layout="@layout/fragment_score">
         <action
             android:id="@+id/action_scoreFragment_to_startFragment"
             app:destination="@id/startFragment" />
@@ -51,7 +56,7 @@
             app:argType="string" />
         <argument
             android:name="score"
-            app:argType="integer"
-            android:defaultValue="0" />
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 </navigation>

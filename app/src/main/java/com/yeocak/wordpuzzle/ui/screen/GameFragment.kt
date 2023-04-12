@@ -1,13 +1,17 @@
 package com.yeocak.wordpuzzle.ui.screen
 
+import android.content.Context.LAYOUT_INFLATER_SERVICE
 import android.graphics.ColorFilter
 import android.os.Bundle
 import android.util.Log
-import android.view.GestureDetector
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.PopupWindow
+import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.yeocak.wordpuzzle.R
@@ -55,8 +59,7 @@ class GameFragment : Fragment() {
                 val bundle = arguments
                 var args = bundle?.let { it1 -> GameFragmentArgs.fromBundle(it1) }
                 if (args != null) {
-                    addScoreToDB(args.name, score)
-                    navigateScoreFragment(args.name)
+                    showPopupWindow(args.name)
                 }
             }
         }
@@ -64,6 +67,11 @@ class GameFragment : Fragment() {
             binding.txtTypedWord.text = word
         }
         onClickListeners()
+    }
+    private fun showPopupWindow(name: String) {
+        val showPopUp = PopUpFragment(name, score)
+         showPopUp.show((activity as AppCompatActivity).supportFragmentManager,
+                            "showPopUp")
     }
 
     private fun onClickListeners() {
@@ -74,32 +82,36 @@ class GameFragment : Fragment() {
 
     private fun btnPauseClickListener() {
         binding.btnPause.setOnClickListener {
-            if (binding.gameView.gameState == GameState.RUNNING) {
-                binding.gameView.pauseGame()
-                binding.btnPause.setImageResource(android.R.drawable.ic_media_play)
-            } else if (binding.gameView.gameState == GameState.PAUSED) {
-                binding.gameView.unpauseGame()
-                binding.btnPause.setImageResource(android.R.drawable.ic_media_pause)
+            if (binding.gameView.gameState != GameState.FINISHED) {
+                if (binding.gameView.gameState == GameState.RUNNING) {
+                    binding.gameView.pauseGame()
+                    binding.btnPause.setImageResource(android.R.drawable.ic_media_play)
+                } else if (binding.gameView.gameState == GameState.PAUSED) {
+                    binding.gameView.unpauseGame()
+                    binding.btnPause.setImageResource(android.R.drawable.ic_media_pause)
+                }
             }
         }
     }
 
     private fun btnApproveClickListener() {
         binding.btnApprove.setOnClickListener {
-            val word = binding.gameView.currentWord
-            val result = checkWord(word)
-            if (result) {
-                val wordPoint = getWordPoint(word)
-                score += wordPoint
-                binding.gameView.popCurrentWord()
+            if (binding.gameView.gameState == GameState.RUNNING) {
+                val word = binding.gameView.currentWord
+                val result = checkWord(word)
+                if (result) {
+                    val wordPoint = getWordPoint(word)
+                    score += wordPoint
+                    binding.gameView.popCurrentWord()
 
-            } else {
-                binding.gameView.cancelCurrentWord()
-                wrongWordAction(word)
-            }
-            binding.txtScore.text = score.toString()
-            if (!gameSpeedLock) {
-                changeGameSpeed()
+                } else {
+                    binding.gameView.cancelCurrentWord()
+                    wrongWordAction(word)
+                }
+                binding.txtScore.text = score.toString()
+                if (!gameSpeedLock) {
+                    changeGameSpeed()
+                }
             }
         }
     }
@@ -166,11 +178,6 @@ class GameFragment : Fragment() {
         }
     }
 
-    private fun navigateScoreFragment(name: String) {
-        val action = GameFragmentDirections.actionGameFragmentToScoreFragment(name)
-        findNavController().navigate(action)
-    }
-
     private fun btnRefuseClickListener() {
         binding.btnRefuse.setOnClickListener {
             binding.gameView.cancelCurrentWord()
@@ -197,12 +204,6 @@ class GameFragment : Fragment() {
                 android.graphics.PorterDuff.Mode.MULTIPLY
             )
         }
-    }
-
-    private fun addScoreToDB(name: String, score: Int) {
-        val db = DBHelper(this.requireContext())
-        val lastScore = Score(1, name, score)
-        db.insertData(lastScore)
     }
 
     override fun onDestroyView() {
