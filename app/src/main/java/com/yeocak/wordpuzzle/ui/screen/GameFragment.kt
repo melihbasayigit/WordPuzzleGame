@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.yeocak.wordpuzzle.R
 import com.yeocak.wordpuzzle.databinding.FragmentGameBinding
+import com.yeocak.wordpuzzle.model.Directions
 import com.yeocak.wordpuzzle.model.GameState
 import com.yeocak.wordpuzzle.utils.Letters
 
@@ -19,7 +20,6 @@ class GameFragment : Fragment() {
 	private var _binding: FragmentGameBinding? = null
 	private val binding get() = _binding!!
 
-	lateinit var gestureDetector: GestureDetector
 	private var health: Int = 2
 	private var score: Int = 0
 	private var defaultColorFilter: ColorFilter? = null
@@ -38,13 +38,10 @@ class GameFragment : Fragment() {
 		super.onViewCreated(view, savedInstanceState)
 
 		// KODUNU BURAYA YAZ
-		gestureDetector = GestureDetector(
-			this.requireContext(),
-			GestureDetector.SimpleOnGestureListener()
-		)
 		defaultColorFilter = binding.imgHealBarLeft.colorFilter
 		// AFTER DEBUG DELETE THE BELLOW LINE
 		gameSpeedLock = true
+		//
 		binding.gameView.setOnGameStateChangeListener { state ->
 			if (state == GameState.FINISHED) {
 				val bundle = arguments
@@ -56,6 +53,11 @@ class GameFragment : Fragment() {
 		}
 		binding.gameView.setOnCurrentWordChangeListener { word ->
 			binding.txtTypedWord.text = word
+		}
+		binding.gameView.setOnSwipeListener {direction ->
+			if (direction == Directions.RIGHT || direction == Directions.LEFT) {
+				approve()
+			}
 		}
 		onClickListeners()
 	}
@@ -90,22 +92,26 @@ class GameFragment : Fragment() {
 
 	private fun btnApproveClickListener() {
 		binding.btnApprove.setOnClickListener {
-			if (binding.gameView.gameState == GameState.RUNNING) {
-				val word = binding.gameView.currentWord
-				val result = checkWord(word)
-				if (result) {
-					val wordPoint = getWordPoint(word)
-					score += wordPoint
-					binding.gameView.popCurrentWord()
+			approve()
+		}
+	}
 
-				} else {
-					binding.gameView.cancelCurrentWord()
-					wrongWordAction()
-				}
-				binding.txtScore.text = score.toString()
-				if (!gameSpeedLock) {
-					changeGameSpeed()
-				}
+	private fun approve() {
+		if (binding.gameView.gameState == GameState.RUNNING) {
+			val word = binding.gameView.currentWord
+			val result = checkWord(word)
+			if (result) {
+				val wordPoint = getWordPoint(word)
+				score += wordPoint
+				binding.gameView.popCurrentWord()
+
+			} else {
+				binding.gameView.cancelCurrentWord()
+				wrongWordAction()
+			}
+			binding.txtScore.text = score.toString()
+			if (!gameSpeedLock) {
+				changeGameSpeed()
 			}
 		}
 	}
