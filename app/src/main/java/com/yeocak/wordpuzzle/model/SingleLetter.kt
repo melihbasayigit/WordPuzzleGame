@@ -11,6 +11,7 @@ data class SingleLetter(
     val visualType: LetterVisualType,
     val paint: LetterPaint,
     var isSelected: Boolean,
+    var frozenType: FrozenType,
 
     // Positions
     val column: Int,
