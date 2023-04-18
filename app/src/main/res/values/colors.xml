@@ -32,4 +32,9 @@
     <color name="indigo">#4B0082</color>
     <color name="material_green">#00B18A</color>
     <color name="material_red">#E64B58</color>
+
+    <color name="polar_night_zero">#2E3440</color>
+    <color name="polar_night_one">#3B4252</color>
+    <color name="polar_night_two">#434C5E</color>
+    <color name="polar_night_three">#4C566A</color>
 </resources>

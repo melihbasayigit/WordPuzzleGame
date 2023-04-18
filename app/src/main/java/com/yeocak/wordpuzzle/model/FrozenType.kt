@@ -18,12 +18,12 @@ sealed interface FrozenType : Parcelable {
 	object AffectedFrozen : FrozenType, Parcelable
 
 	companion object {
-		fun getRandomInitType(
+		fun getRandomType(
 			@FloatRange(
 				from = 0.0,
 				to = 1.0,
 				toInclusive = false
-			) ratio: Float = 0.3f
+			) ratio: Float = 0.02f
 		): FrozenType {
 			val randomValue = Random.nextFloat()
 			return if (randomValue < ratio) {

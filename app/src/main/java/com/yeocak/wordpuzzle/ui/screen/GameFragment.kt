@@ -2,7 +2,6 @@ package com.yeocak.wordpuzzle.ui.screen
 
 import android.graphics.ColorFilter
 import android.os.Bundle
-import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +13,7 @@ import com.yeocak.wordpuzzle.databinding.FragmentGameBinding
 import com.yeocak.wordpuzzle.model.Directions
 import com.yeocak.wordpuzzle.model.GameState
 import com.yeocak.wordpuzzle.utils.Letters
+import com.yeocak.wordpuzzle.utils.WordListUtils
 
 class GameFragment : Fragment() {
 
@@ -54,7 +54,7 @@ class GameFragment : Fragment() {
 		binding.gameView.setOnCurrentWordChangeListener { word ->
 			binding.txtTypedWord.text = word
 		}
-		binding.gameView.setOnSwipeListener {direction ->
+		binding.gameView.setOnSwipeListener { direction ->
 			if (direction == Directions.RIGHT || direction == Directions.LEFT) {
 				approve()
 			}
@@ -99,7 +99,7 @@ class GameFragment : Fragment() {
 	private fun approve() {
 		if (binding.gameView.gameState == GameState.RUNNING) {
 			val word = binding.gameView.currentWord
-			val result = checkWord(word)
+			val result = WordListUtils.isWordAvailable(word, requireActivity().application)
 			if (result) {
 				val wordPoint = getWordPoint(word)
 				score += wordPoint
@@ -131,9 +131,11 @@ class GameFragment : Fragment() {
 			1 -> {
 				deActiveHealBarLeft(true)
 			}
+
 			0 -> {
 				deActiveHealBarRight(true)
 			}
+
 			else -> {
 				deActiveHealBarRight(false)
 				deActiveHealBarLeft(false)

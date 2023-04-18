@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/gray_twenty">
+    android:background="@color/polar_night_one">
 
     <ImageView
         android:id="@+id/imgScoreBackground"
@@ -59,10 +59,10 @@
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        android:backgroundTint="@color/dim_gray"
         android:layout_margin="10dp"
+        android:backgroundTint="@color/dim_gray"
         app:cardCornerRadius="16dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
@@ -79,7 +79,9 @@
         android:id="@+id/gameView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        app:backgroundColor="@color/polar_night_two"
         app:column_number="8"
+        android:layout_marginTop="16dp"
         app:layout_constraintBottom_toTopOf="@+id/btnApprove"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

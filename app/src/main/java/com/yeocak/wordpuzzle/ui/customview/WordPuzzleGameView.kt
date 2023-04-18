@@ -1,8 +1,12 @@
 package com.yeocak.wordpuzzle.ui.customview
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
@@ -12,11 +16,25 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.core.content.res.ResourcesCompat
 import com.yeocak.wordpuzzle.R
-import com.yeocak.wordpuzzle.model.*
-import com.yeocak.wordpuzzle.utils.*
+import com.yeocak.wordpuzzle.model.Directions
+import com.yeocak.wordpuzzle.model.FrozenType
+import com.yeocak.wordpuzzle.model.GameState
+import com.yeocak.wordpuzzle.model.LetterPaint
+import com.yeocak.wordpuzzle.model.LetterVisualType
+import com.yeocak.wordpuzzle.model.PuzzleField
+import com.yeocak.wordpuzzle.model.RowValues
+import com.yeocak.wordpuzzle.model.SingleLetter
+import com.yeocak.wordpuzzle.utils.Letters
+import com.yeocak.wordpuzzle.utils.OnSwipeTouchListener
+import com.yeocak.wordpuzzle.utils.decodeToBitmap
+import com.yeocak.wordpuzzle.utils.drawTextCentered
+import com.yeocak.wordpuzzle.utils.getRandomColorInt
+import com.yeocak.wordpuzzle.utils.parcelable
+import com.yeocak.wordpuzzle.utils.parcelableArray
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.math.min
 
 class WordPuzzleGameView @JvmOverloads constructor(
 	context: Context, attrs: AttributeSet? = null
@@ -189,7 +207,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 			color, puzzleField.fontSize
 		)
 		val row = getRandomRowValues(column)
-		val frozenType = FrozenType.getRandomInitType()
+		val frozenType = FrozenType.getRandomType()
 
 		val newSingleLetter = SingleLetter(
 			letter.char,
@@ -233,6 +251,11 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
 	// region Styles
 
+	private var circleOriginalFrozenBitmap: Bitmap? = null
+	private var rectOriginalFrozenBitmap: Bitmap? = null
+	private var circleAffectedFrozenBitmap: Bitmap? = null
+	private var rectAffectedFrozenBitmap: Bitmap? = null
+
 	private var backgroundColor = ResourcesCompat.getColor(
 		resources, R.color.black, null
 	)
@@ -258,31 +281,16 @@ class WordPuzzleGameView @JvmOverloads constructor(
 		isAntiAlias = true
 	}
 
-	// TODO("DELETE ME")
-	private var originalFrozenColor = ResourcesCompat.getColor(
-		resources, R.color.white, null
-	)
-
-	private val originalFrozenPaint = Paint().apply {
-		color = originalFrozenColor
-		style = Paint.Style.STROKE
-		strokeWidth = 10f
+	private val emptyPaint = Paint().apply {
 		isAntiAlias = true
 	}
 
-	// TODO("DELETE ME")
-	private var affectedFrozenColor = ResourcesCompat.getColor(
-		resources, R.color.blue_cola, null
-	)
-
-	private val affectedFrozenPaint = Paint().apply {
-		color = affectedFrozenColor
-		style = Paint.Style.STROKE
-		strokeWidth = 10f
+	private val srcOutPaint = Paint().apply {
+		xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
 		isAntiAlias = true
 	}
 
-	private var topLineColor = ResourcesCompat.getColor(
+	private val topLineColor = ResourcesCompat.getColor(
 		resources, R.color.red, null
 	)
 
@@ -291,6 +299,17 @@ class WordPuzzleGameView @JvmOverloads constructor(
 		style = Paint.Style.FILL_AND_STROKE
 		color = topLineColor
 		isAntiAlias = true
+	}
+
+	private var fpsCounterColor = ResourcesCompat.getColor(
+		resources, R.color.chinese_yellow, null
+	)
+
+	private val fpsCounterPaint = Paint().apply {
+		isAntiAlias = true
+		color = fpsCounterColor
+		style = Paint.Style.FILL
+		textSize = 50f
 	}
 
 	init {
@@ -324,7 +343,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 		}
 	}
 
-// endregion
+	// endregion
 
 	override fun surfaceCreated(p0: SurfaceHolder) {
 		if (gameState.isAutoRunnable) {
@@ -351,6 +370,18 @@ class WordPuzzleGameView @JvmOverloads constructor(
 		if (gameState.isAutoRunnable) {
 			gameState = GameState.RUNNING
 		}
+
+		// Create bitmaps again with new sizes
+		val originalFrozenBitmap = R.drawable.original_frozen.decodeToBitmap(resources)
+		val affectedFrozenBitmap = R.drawable.affected_frozen.decodeToBitmap(resources)
+
+		circleOriginalFrozenBitmap = originalFrozenBitmap?.cropCircular(puzzleField.letterSize)
+		rectOriginalFrozenBitmap = originalFrozenBitmap?.cropRoundRect(puzzleField.letterSize)
+		circleAffectedFrozenBitmap = affectedFrozenBitmap?.cropCircular(puzzleField.letterSize)
+		rectAffectedFrozenBitmap = affectedFrozenBitmap?.cropRoundRect(puzzleField.letterSize)
+
+		originalFrozenBitmap?.recycle()
+		affectedFrozenBitmap?.recycle()
 	}
 
 	override fun surfaceDestroyed(p0: SurfaceHolder) {
@@ -360,9 +391,11 @@ class WordPuzzleGameView @JvmOverloads constructor(
 
 	private fun calculate() {
 		useLetterList {
+			// Calculate next value of position
 			forEach { letter ->
 				letter.calculateNextRowValue(0.05f)
 			}
+			// Calculate next original frozen state
 			forEach { letter ->
 				if (!letter.row.isStable() && letter.frozenType !is FrozenType.OriginalFrozen) return@forEach
 				val nearLetters = getNearLetters(letter).filter { nearLetter ->
@@ -417,34 +450,75 @@ class WordPuzzleGameView @JvmOverloads constructor(
 			textPaint = unselectedLetterTextPaint
 		}
 
+		val coordinates = puzzleField.getLetterCoordinates(letter.row, letter.column)
 		when (letter.visualType) {
 			LetterVisualType.RECT -> {
-				val coordinates = puzzleField.getLetterCoordinates(letter.row, letter.column)
-				drawRoundRect(coordinates, 15f, 15f, backgroundPaint)
+				drawRoundRect(coordinates, ROUND_RECT_RADIUS, ROUND_RECT_RADIUS, backgroundPaint)
 			}
+
 			LetterVisualType.CIRCLE -> {
 				val radius = puzzleField.letterSize / 2
 				drawCircle(center.x, center.y, radius, backgroundPaint)
 			}
 		}
-		// TODO("GEÇİCİ")
-		if (letter.frozenType is FrozenType.OriginalFrozen) {
-			val coordinates = puzzleField.getLetterCoordinates(letter.row, letter.column)
-			drawRect(coordinates, originalFrozenPaint)
-		}
-		if (letter.frozenType is FrozenType.AffectedFrozen) {
-			val coordinates = puzzleField.getLetterCoordinates(letter.row, letter.column)
-			drawRect(coordinates, affectedFrozenPaint)
-		}
 
-		drawTextCentered(
-			letter.character.toString(), center.x, center.y, textPaint
-		)
+		drawFrozenType(letter, coordinates)
+		drawTextCentered(letter.character.toString(), center.x, center.y, textPaint)
 	}
+
+	private fun Canvas.drawFrozenType(letter: SingleLetter, coordinates: RectF) {
+		val typeBitmap = when {
+			letter.frozenType is FrozenType.OriginalFrozen && letter.visualType == LetterVisualType.RECT -> rectOriginalFrozenBitmap
+			letter.frozenType is FrozenType.OriginalFrozen && letter.visualType == LetterVisualType.CIRCLE -> circleOriginalFrozenBitmap
+			letter.frozenType is FrozenType.AffectedFrozen && letter.visualType == LetterVisualType.RECT -> rectAffectedFrozenBitmap
+			letter.frozenType is FrozenType.AffectedFrozen && letter.visualType == LetterVisualType.CIRCLE -> circleAffectedFrozenBitmap
+			else -> null
+		}
+		typeBitmap ?: return
+		drawBitmap(typeBitmap, null, coordinates, emptyPaint)
+	}
+
+	private fun Canvas.drawFrozenType(letter: SingleLetter) {
+		val coordinates = puzzleField.getLetterCoordinates(letter.row, letter.column)
+		drawFrozenType(letter, coordinates)
+	}
+
+	private fun Bitmap.cropCircular(imageSize: Float): Bitmap {
+		val sentBitmap =
+			Bitmap.createScaledBitmap(this, imageSize.toInt(), imageSize.toInt(), true)
+		val bitmapArea = Bitmap.createBitmap(
+			imageSize.toInt(),
+			imageSize.toInt(),
+			Bitmap.Config.ARGB_8888
+		)
+		val canvas = Canvas(bitmapArea)
+		canvas.drawCircle(imageSize / 2, imageSize / 2, imageSize / 2, emptyPaint)
+		canvas.drawBitmap(sentBitmap, 0.0f, 0.0f, srcOutPaint)
+		sentBitmap.recycle()
+		return bitmapArea
+	}
+
+	private fun Bitmap.cropRoundRect(imageSize: Float): Bitmap {
+		val sentBitmap =
+			Bitmap.createScaledBitmap(this, imageSize.toInt(), imageSize.toInt(), true)
+		val bitmapArea = Bitmap.createBitmap(
+			imageSize.toInt(),
+			imageSize.toInt(),
+			Bitmap.Config.ARGB_8888
+		)
+		val canvas = Canvas(bitmapArea)
+		val rect = RectF(0f, 0f, imageSize, imageSize)
+		canvas.drawRoundRect(rect, ROUND_RECT_RADIUS, ROUND_RECT_RADIUS, emptyPaint)
+		canvas.drawBitmap(sentBitmap, 0.0f, 0.0f, srcOutPaint)
+		sentBitmap.recycle()
+		return bitmapArea
+	}
+
 
 	private inner class SurfaceViewThread : Thread() {
 
 		override fun run() {
+			var frameTime = 0L
 			try {
 				do {
 					holder ?: return
@@ -457,22 +531,35 @@ class WordPuzzleGameView @JvmOverloads constructor(
 							}
 							canvas.drawColor(backgroundColor) // clear screen
 							canvas.drawField()
+
+							// Show fps if active
+							if (SHOW_FPS_COUNTER) {
+								if (frameTime == 0L) frameTime = 1L
+								val frameTimeWithoutSleep = 1_000 / frameTime
+								val fps =
+									min(frameTimeWithoutSleep, MAX_FRAME_TIME.toLong()).toString()
+								canvas.drawText(
+									fps,
+									0,
+									fps.length,
+									0f,
+									fpsCounterPaint.textSize,
+									fpsCounterPaint
+								)
+							}
 						} finally {
 							holder.unlockCanvasAndPost(canvas)
 						}
 					}
 
 					// If faster than the max FPS, limit fps
-					val frameTime = (System.nanoTime() - frameStartTime) / 1_000_000
+					frameTime = (System.nanoTime() - frameStartTime) / 1_000_000
 					if (frameTime < MAX_FRAME_FREQUENCY) {
 						try {
-							//Log.d("EmreTest", (MAX_FRAME_FREQUENCY - frameTime).toString())
 							sleep(MAX_FRAME_FREQUENCY - frameTime)
 						} catch (e: InterruptedException) {
 							// ignore
 						}
-					} else {
-						//Log.d("EmreTest", "Not Sleeped")
 					}
 				} while (gameState.isThreadsRunning)
 			} catch (e: Exception) {
@@ -573,7 +660,8 @@ class WordPuzzleGameView @JvmOverloads constructor(
 	private fun getRandomRowValues(column: Int): RowValues.BetweenRows {
 		val row = getAvailableRow(column)
 		return RowValues.BetweenRows(
-			values = Pair(puzzleField.rowNumber, puzzleField.rowNumber + 1),
+			values = Pair(puzzleField.firstRowOfScreen, puzzleField.firstRowOfScreen + 1),
+			//values = Pair(puzzleField.rowNumber, puzzleField.rowNumber + 1),
 			betweenRatio = 0f,
 			goal = row
 		)
@@ -599,6 +687,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 					is RowValues.BetweenRows -> {
 						letter.row.goal = index
 					}
+
 					is RowValues.StableRow -> {
 						letter.row = RowValues.BetweenRows(
 							values = Pair(currentRow.value - 1, currentRow.value),
@@ -674,5 +763,8 @@ class WordPuzzleGameView @JvmOverloads constructor(
 		private const val MAX_FRAME_TIME = 60
 		private const val MAX_FRAME_FREQUENCY = 1000 / MAX_FRAME_TIME
 		private const val LOG_TAG = "WordPuzzleGameView"
+
+		private const val ROUND_RECT_RADIUS = 15f
+		private const val SHOW_FPS_COUNTER = true
 	}
 }
