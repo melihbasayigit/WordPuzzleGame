@@ -326,6 +326,7 @@ class WordPuzzleGameView @JvmOverloads constructor(
 				columnNumber, rowNumber
 			)
 			backgroundPaint.color = backgroundColor
+			unselectedLetterTextPaint.color = backgroundColor
 			startRowCount = getInt(R.styleable.WordPuzzleGameView_start_row_count, 0)
 			recycle()
 
