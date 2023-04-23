@@ -761,11 +761,11 @@ class WordPuzzleGameView @JvmOverloads constructor(
 	}
 
 	companion object {
-		private const val MAX_FRAME_TIME = 60
-		private const val MAX_FRAME_FREQUENCY = 1000 / MAX_FRAME_TIME
+		private const val MAX_FRAME_TIME = 60 // You can change this
+		private const val MAX_FRAME_FREQUENCY = 1_000 / MAX_FRAME_TIME // Don't change this
 		private const val LOG_TAG = "WordPuzzleGameView"
 
 		private const val ROUND_RECT_RADIUS = 15f
-		private const val SHOW_FPS_COUNTER = true
+		private const val SHOW_FPS_COUNTER = false
 	}
 }
