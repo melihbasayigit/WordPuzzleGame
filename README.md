@@ -21,6 +21,7 @@ Here're some of the project's best features:
 *   60 Fps support
 *   Stop/Start game button
 *   Save the score
+*   Pause the Game
   
 <h2>💻 Built with</h2>
 
