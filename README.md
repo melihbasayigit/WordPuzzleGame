@@ -17,7 +17,7 @@ Here're some of the project's best features:
 
 *   58000 Turkish words
 *   Undo your selection
-*   Swibe left or right to check the selection
+*   Swipe left or right to check the selection
 *   60 Fps support
 *   Stop/Start game button
 *   Save the score
