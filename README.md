@@ -30,8 +30,6 @@ Technologies used in the project:
 *   Kotlin
 *   Android Studio
 *   SQLite
-*   Paralize
-*   Gesture Detector
 *   Written in accordance with OOP rules
 *   CustomView for game view
 *   Multithread
